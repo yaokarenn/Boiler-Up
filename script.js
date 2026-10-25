@@ -293,3 +293,121 @@ exitButton.addEventListener("click", () => {
     state = "home";
     showScreen("home-screen");
 });
+
+// IPHONE TILT CONTROLS
+
+const tiltButton = document.createElement("button");
+tiltButton.type = "button";
+tiltButton.textContent = "Enable Tilt Controls";
+
+const tiltStatus = document.createElement("p");
+tiltStatus.style.maxWidth = "320px";
+tiltStatus.style.lineHeight = "1.5";
+tiltStatus.textContent =
+    "Enable tilt, then hold your phone sideways to play.";
+
+document.querySelector("#home-screen").append(
+    tiltButton,
+    tiltStatus
+);
+
+let tiltEnabled = false;
+let tiltArmed = false;
+let tiltReceivedData = false;
+
+function handleTilt(event) {
+    if (
+        !Number.isFinite(event.beta) ||
+        !Number.isFinite(event.gamma)
+    ) {
+        return;
+    }
+
+    if (!tiltReceivedData) {
+        tiltReceivedData = true;
+        tiltStatus.textContent =
+            "Tilt is ready. Hold the phone sideways against your forehead.";
+    }
+
+    if (state !== "playing") {
+        tiltArmed = false;
+        return;
+    }
+
+    const beta = event.beta * Math.PI / 180;
+    const gamma = event.gamma * Math.PI / 180;
+
+    // Works even when Safari's viewport stays in portrait.
+    const screenDirection = Math.cos(beta) * Math.cos(gamma);
+
+    // Return the screen upright before another answer counts.
+    if (Math.abs(screenDirection) < 0.25) {
+        tiltArmed = true;
+        return;
+    }
+
+    if (!tiltArmed) {
+        return;
+    }
+
+    if (screenDirection < -0.6) {
+        tiltArmed = false;
+        recordAnswer(true);
+    } else if (screenDirection > 0.6) {
+        tiltArmed = false;
+        recordAnswer(false);
+    }
+}
+
+tiltButton.addEventListener("click", async () => {
+    if (tiltEnabled) {
+        return;
+    }
+
+    if (!window.isSecureContext) {
+        tiltStatus.textContent =
+            "Open the HTTPS game link to enable tilt.";
+        return;
+    }
+
+    if (typeof DeviceOrientationEvent === "undefined") {
+        tiltStatus.textContent =
+            "Motion controls are unavailable in this browser. Use the buttons.";
+        return;
+    }
+
+    tiltButton.disabled = true;
+
+    try {
+        if (
+            typeof DeviceOrientationEvent.requestPermission === "function"
+        ) {
+            const permission =
+                await DeviceOrientationEvent.requestPermission();
+
+            if (permission !== "granted") {
+                tiltStatus.textContent =
+                    "Motion permission was not allowed. You can still use the buttons.";
+                return;
+            }
+        }
+
+        window.addEventListener("deviceorientation", handleTilt);
+
+        tiltEnabled = true;
+        tiltButton.textContent = "Tilt Enabled";
+        tiltStatus.textContent = "Waiting for motion sensors...";
+
+        setTimeout(() => {
+            if (!tiltReceivedData) {
+                tiltStatus.textContent =
+                    "No motion data received. Try Safari on your iPhone, or use the buttons.";
+            }
+        }, 5000);
+    } catch (error) {
+        tiltStatus.textContent =
+            "Could not enable motion. Try again or use the buttons.";
+    } finally {
+        tiltButton.disabled = tiltEnabled;
+    }
+});

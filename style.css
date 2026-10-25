@@ -241,3 +241,63 @@ button:focus-visible {
     color: #cfb991;
     font-size: 14px;
 }
+
+/* Display gameplay sideways on a phone with a portrait viewport. */
+@media (orientation: portrait) and (pointer: coarse) {
+    #ready-screen,
+    #round-screen,
+    #action-screen {
+        position: fixed;
+        left: 50%;
+        top: 50%;
+
+        width: 100svh;
+        height: 100svw;
+        min-height: 0;
+
+        transform: translate(-50%, -50%) rotate(90deg);
+        transform-origin: center;
+        z-index: 20;
+        overflow: hidden;
+        padding: 12px;
+    }
+
+    #round-screen {
+        gap: 10px;
+    }
+
+    #round-screen .word-card {
+        flex: 1;
+        width: 100%;
+        height: auto;
+        min-height: 0;
+        padding: 16px 32px;
+        gap: 20px;
+    }
+
+    #word {
+        font-size: clamp(36px, 9svh, 90px);
+    }
+
+    #timer {
+        font-size: clamp(20px, 5svw, 28px);
+    }
+
+    #test-controls {
+        flex-shrink: 0;
+    }
+
+    #test-controls button {
+        padding: 8px 18px;
+    }
+
+    #action-text {
+        font-size: clamp(36px, 10svh, 100px);
+    }
+
+    #hammer {
+        width: 90px;
+        height: 90px;
+    }
+}
+
