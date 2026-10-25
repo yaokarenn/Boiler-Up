@@ -296,6 +296,12 @@ exitButton.addEventListener("click", () => {
 
 // IPHONE TILT CONTROLS
 
+// Tilt settings — easy to adjust later.
+const TILT_ANGLE = 25;
+const RESET_ANGLE = 20;
+const TILT_HOLD_MS = 80;
+const RESET_HOLD_MS = 100;
+
 const tiltButton = document.createElement("button");
 tiltButton.type = "button";
 tiltButton.textContent = "Enable Tilt Controls";
@@ -315,6 +321,10 @@ let tiltEnabled = false;
 let tiltArmed = false;
 let tiltReceivedData = false;
 
+let tiltNeutralSince = null;
+let tiltCandidate = null;
+let tiltCandidateSince = null;
+
 function handleTilt(event) {
     if (
         !Number.isFinite(event.beta) ||
@@ -329,33 +339,75 @@ function handleTilt(event) {
             "Tilt is ready. Hold the phone sideways against your forehead.";
     }
 
+    // Ignore movement outside an active round.
     if (state !== "playing") {
         tiltArmed = false;
+        tiltNeutralSince = null;
+        tiltCandidate = null;
+        tiltCandidateSince = null;
         return;
     }
+
+    const now = performance.now();
 
     const beta = event.beta * Math.PI / 180;
     const gamma = event.gamma * Math.PI / 180;
 
-    // Works even when Safari's viewport stays in portrait.
     const screenDirection = Math.cos(beta) * Math.cos(gamma);
+    const triggerThreshold = Math.sin(TILT_ANGLE * Math.PI / 180);
+    const resetThreshold = Math.sin(RESET_ANGLE * Math.PI / 180);
 
-    // Return the screen upright before another answer counts.
-    if (Math.abs(screenDirection) < 0.25) {
-        tiltArmed = true;
+    // Hold approximately upright briefly to prepare the next tilt.
+    if (Math.abs(screenDirection) <= resetThreshold) {
+        tiltCandidate = null;
+        tiltCandidateSince = null;
+
+        if (tiltNeutralSince === null) {
+            tiltNeutralSince = now;
+        }
+
+        if (now - tiltNeutralSince >= RESET_HOLD_MS) {
+            tiltArmed = true;
+        }
+
         return;
     }
+
+    tiltNeutralSince = null;
 
     if (!tiltArmed) {
         return;
     }
 
-    if (screenDirection < -0.6) {
+    let direction = null;
+
+    if (screenDirection < -triggerThreshold) {
+        direction = "correct";
+    } else if (screenDirection > triggerThreshold) {
+        direction = "pass";
+    }
+
+    // The movement hasn't reached the required angle.
+    if (direction === null) {
+        tiltCandidate = null;
+        tiltCandidateSince = null;
+        return;
+    }
+
+    // Begin checking whether this is a deliberate tilt.
+    if (tiltCandidate !== direction) {
+        tiltCandidate = direction;
+        tiltCandidateSince = now;
+        return;
+    }
+
+    // Register one answer, then require an upright reset.
+    if (now - tiltCandidateSince >= TILT_HOLD_MS) {
         tiltArmed = false;
-        recordAnswer(true);
-    } else if (screenDirection > 0.6) {
-        tiltArmed = false;
-        recordAnswer(false);
+        tiltCandidate = null;
+        tiltCandidateSince = null;
+
+        recordAnswer(direction === "correct");
     }
 }
 
