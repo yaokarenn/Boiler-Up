@@ -463,3 +463,76 @@ tiltButton.addEventListener("click", async () => {
         tiltButton.disabled = tiltEnabled;
     }
 });
+
+// PAUSE AND RESUME
+
+const pauseButton = document.createElement("button");
+pauseButton.id = "pause-button";
+pauseButton.type = "button";
+pauseButton.textContent = "Pause";
+pauseButton.setAttribute("aria-pressed", "false");
+testControls.append(pauseButton);
+
+const correctButton = document.querySelector("#correct-button");
+const passButton = document.querySelector("#pass-button");
+
+let pausedTimeLeft = 0;
+
+function resetTiltAfterPause() {
+    tiltArmed = false;
+    tiltNeutralSince = null;
+    tiltCandidate = null;
+    tiltCandidateSince = null;
+}
+
+pauseButton.addEventListener("click", () => {
+    if (state === "playing") {
+        pausedTimeLeft = endTime - Date.now();
+
+        if (pausedTimeLeft <= 0) {
+            finishRound();
+            return;
+        }
+
+        clearInterval(roundTimer);
+        state = "paused";
+
+        resetTiltAfterPause();
+        wordDisplay.textContent = "PAUSED";
+        pauseButton.textContent = "Resume";
+        pauseButton.setAttribute("aria-pressed", "true");
+
+        correctButton.disabled = true;
+        passButton.disabled = true;
+    } else if (state === "paused") {
+        endTime = Date.now() + pausedTimeLeft;
+        resetTiltAfterPause();
+
+        wordDisplay.textContent = currentWord.word;
+        pauseButton.textContent = "Pause";
+        pauseButton.setAttribute("aria-pressed", "false");
+
+        correctButton.disabled = false;
+        passButton.disabled = false;
+
+        state = "playing";
+        updateTimer();
+        roundTimer = setInterval(updateTimer, 100);
+    }
+});
+
+// Allow Exit to work while paused, too.
+exitButton.addEventListener("click", () => {
+    if (state === "paused") {
+        clearInterval(roundTimer);
+        state = "home";
+        showScreen("home-screen");
+    }
+
+    pausedTimeLeft = 0;
+    pauseButton.textContent = "Pause";
+    pauseButton.setAttribute("aria-pressed", "false");
+
+    correctButton.disabled = false;
+    passButton.disabled = false;
+});
