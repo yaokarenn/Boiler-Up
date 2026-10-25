@@ -1,0 +1,295 @@
+// Add more words here later.
+// You can replace these definitions with your preferred wording.
+const wordBank = [
+    {
+        word: "Pilk",
+        definition: "A mixture of Pepsi and milk."
+    },
+    {
+        word: "Mitch Daniels",
+        definition: "A former president of Purdue University."
+    },
+    {
+        word: "Football",
+        definition: "The sport the Boilermakers play at Ross-Ade Stadium."
+    },
+    {
+        word: "CoRec",
+        definition: "Purdue's recreation center for exercise and sports."
+    },
+    {
+        word: "WALC",
+        definition: "The Wilmeth Active Learning Center."
+    },
+    {
+        word: "Bell Tower",
+        definition: "The campus landmark associated with the superstition about walking underneath it before graduation."
+    }
+];
+
+const screens = document.querySelectorAll(".screen");
+const wordDisplay = document.querySelector("#word");
+const timerDisplay = document.querySelector("#timer");
+const testControls = document.querySelector("#test-controls");
+const actionScreen = document.querySelector("#action-screen");
+const actionText = document.querySelector("#action-text");
+
+let deck = [];
+let currentWord = null;
+let answers = [];
+let lastWord = "";
+let state = "loading";
+let endTime = 0;
+let roundTimer = null;
+
+function showScreen(id) {
+    screens.forEach((screen) => {
+        screen.hidden = screen.id !== id;
+    });
+}
+
+function wait(milliseconds) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, milliseconds);
+    });
+}
+
+function shuffle(items) {
+    const shuffled = [...items];
+
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    return shuffled;
+}
+
+function nextWord() {
+    if (deck.length === 0) {
+        deck = shuffle(wordBank);
+
+        // Avoid repeating the previous word at a deck boundary.
+        if (deck.length > 1 && deck[0].word === lastWord) {
+            [deck[0], deck[1]] = [deck[1], deck[0]];
+        }
+    }
+
+    currentWord = deck.shift();
+    lastWord = currentWord.word;
+    wordDisplay.textContent = currentWord.word;
+}
+
+async function startRound() {
+    if (state !== "home" && state !== "results") {
+        return;
+    }
+
+    answers = [];
+    deck = [];
+    lastWord = "";
+    currentWord = null;
+    state = "ready";
+
+    showScreen("ready-screen");
+
+    const hammer = document.querySelector("#hammer");
+    hammer.classList.remove("swing");
+    void hammer.getBoundingClientRect();
+    hammer.classList.add("swing");
+
+    await wait(1200);
+
+    showScreen("round-screen");
+    testControls.hidden = true;
+    timerDisplay.textContent = "";
+
+    for (let count = 3; count >= 1; count--) {
+        wordDisplay.textContent = "Starting in " + count;
+        await wait(1000);
+    }
+
+    nextWord();
+    timerDisplay.textContent = "1:00";
+    testControls.hidden = false;
+
+    state = "playing";
+    endTime = Date.now() + 60000;
+    roundTimer = setInterval(updateTimer, 100);
+}
+
+function updateTimer() {
+    const secondsLeft = Math.max(
+        0,
+        Math.ceil((endTime - Date.now()) / 1000)
+    );
+
+    const minutes = Math.floor(secondsLeft / 60);
+    const seconds = String(secondsLeft % 60).padStart(2, "0");
+
+    timerDisplay.textContent = minutes + ":" + seconds;
+
+    if (secondsLeft === 0) {
+        finishRound();
+    }
+}
+
+async function recordAnswer(correct) {
+    if (state !== "playing") {
+        return;
+    }
+
+    if (Date.now() >= endTime) {
+        finishRound();
+        return;
+    }
+
+    answers.push({
+        ...currentWord,
+        correct: correct
+    });
+
+    state = "action";
+
+    actionScreen.classList.toggle("correct", correct);
+    actionScreen.classList.toggle("pass", !correct);
+    actionText.textContent = correct ? "HAMMER DOWN" : "PASS";
+
+    showScreen("action-screen");
+
+    // A quick action flash; the round timer keeps running.
+    await wait(350);
+
+    if (state !== "action") {
+        return;
+    }
+
+    if (Date.now() >= endTime) {
+        finishRound();
+        return;
+    }
+
+    nextWord();
+    showScreen("round-screen");
+    state = "playing";
+}
+
+function finishRound() {
+    if (state !== "playing" && state !== "action") {
+        return;
+    }
+
+    clearInterval(roundTimer);
+    state = "results";
+
+    const correctCount = answers.filter((answer) => {
+        return answer.correct;
+    }).length;
+
+    document.querySelector("#score").textContent =
+        correctCount + " correct · " +
+        (answers.length - correctCount) + " passed";
+
+    const resultsList = document.querySelector("#results-list");
+    resultsList.replaceChildren();
+
+    answers.forEach((answer) => {
+        const item = document.createElement("li");
+        const title = document.createElement("strong");
+        const definition = document.createElement("p");
+
+        title.textContent =
+            answer.word + " — " +
+            (answer.correct ? "Correct" : "Passed");
+
+        definition.textContent = answer.definition;
+
+        item.append(title, definition);
+        resultsList.append(item);
+    });
+
+    // Include the word that was still on screen when time ran out.
+    if (currentWord && answers.length > 0) {
+        const lastAnswer = answers[answers.length - 1];
+
+        if (lastAnswer.word === currentWord.word && state === "results") {
+            // Answered words are already included above.
+        }
+    }
+
+    showScreen("results-screen");
+}
+
+document.querySelector("#start-button").addEventListener(
+    "click",
+    startRound
+);
+
+document.querySelector("#again-button").addEventListener(
+    "click",
+    startRound
+);
+
+document.querySelector("#correct-button").addEventListener("click", () => {
+    recordAnswer(true);
+});
+
+document.querySelector("#pass-button").addEventListener("click", () => {
+    recordAnswer(false);
+});
+
+document.querySelector("#home-button").addEventListener("click", () => {
+    state = "home";
+    showScreen("home-screen");
+});
+
+// Temporary keyboard controls for testing on your Mac.
+document.addEventListener("keydown", (event) => {
+    if (state !== "playing" || event.repeat) {
+        return;
+    }
+
+    if (event.key === "ArrowDown") {
+        event.preventDefault();
+        recordAnswer(true);
+    } else if (event.key === "ArrowUp") {
+        event.preventDefault();
+        recordAnswer(false);
+    }
+});
+
+// Initial loading animation.
+let progress = 0;
+
+const loadingTimer = setInterval(() => {
+    progress += 2;
+
+    document.querySelector("#loading-fill").style.width =
+        progress + "%";
+
+    if (progress >= 100) {
+        clearInterval(loadingTimer);
+        state = "home";
+        showScreen("home-screen");
+    }
+}, 30);
+const exitButton = document.createElement("button");
+
+exitButton.id = "exit-button";
+exitButton.type = "button";
+exitButton.textContent = "Exit";
+exitButton.setAttribute("aria-label", "Exit round and return home");
+
+// Appears with the gameplay controls after the countdown.
+testControls.append(exitButton);
+
+exitButton.addEventListener("click", () => {
+    if (state !== "playing") {
+        return;
+    }
+
+    clearInterval(roundTimer);
+    state = "home";
+    showScreen("home-screen");
+});

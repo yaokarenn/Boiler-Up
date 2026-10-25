@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boiler Up</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+</head>
+<body>
+    <main>
+        <section id="loading-screen" class="screen dark">
+            <h1>BOILER UP</h1>
+            <p>Getting game ready...</p>
+            <div class="loading-track">
+                <div id="loading-fill"></div>
+            </div>
+        </section>
+
+        <section id="home-screen" class="screen gold" hidden>
+            <h1>BOILER UP</h1>
+            <p>HAMMER DOWN</p>
+            <button id="start-button">Tap to Start</button>
+        </section>
+
+        <section id="ready-screen" class="screen dark" hidden>
+            <svg id="hammer" viewBox="0 0 100 100" aria-hidden="true">
+                <rect x="44" y="35" width="12" height="55" rx="3" />
+                <rect x="20" y="18" width="60" height="24" rx="4" />
+            </svg>
+            <p>Get ready...</p>
+        </section>
+
+        <section id="round-screen" class="screen dark" hidden>
+            <div class="word-card">
+                <h2 id="word"></h2>
+                <p id="timer"></p>
+            </div>
+
+            <div id="test-controls">
+                <button id="correct-button">↓ Correct</button>
+                <button id="pass-button">↑ Pass</button>
+            </div>
+        </section>
+
+        <section id="action-screen" class="screen" hidden>
+            <h1 id="action-text"></h1>
+        </section>
+
+        <section id="results-screen" class="screen gold" hidden>
+            <h1>ROUND OVER</h1>
+            <p id="score"></p>
+            <ul id="results-list"></ul>
+            <button id="again-button">Play Again</button>
+            <button id="home-button">Home</button>
+        </section>
+    </main>
+</body>
+</html>
