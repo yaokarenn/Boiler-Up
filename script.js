@@ -1,30 +1,19 @@
 // Add more words here later.
 // You can replace these definitions with your preferred wording.
 const wordBank = [
-    {
-        word: "Pilk",
-        definition: "A mixture of Pepsi and milk."
-    },
-    {
-        word: "Mitch Daniels",
-        definition: "A former president of Purdue University."
-    },
-    {
-        word: "Football",
-        definition: "The sport the Boilermakers play at Ross-Ade Stadium."
-    },
-    {
-        word: "CoRec",
-        definition: "Purdue's recreation center for exercise and sports."
-    },
-    {
-        word: "WALC",
-        definition: "The Wilmeth Active Learning Center."
-    },
-    {
-        word: "Bell Tower",
-        definition: "The campus landmark associated with the superstition about walking underneath it before graduation."
-    }
+    {word: "Amiela Earhart", definition: "Born in 1897, this pioneering pilot joined Purdue in 1935 as a career counselor for women and an adviser in aeronautics. During her campus visits, she stayed in South Hall, now called Duhme Hall. She encouraged women to pursue careers beyond traditional expectations. Earhart disappeared with navigator Fred Noonan on July 2, 1937, during an attempt to fly around the world.\n\nOctober 2026 update: Purdue helped investigate a possible aircraft-shaped object at Nikumaroro, an island where some researchers believe she may have landed. The expedition found that the object was likely washed-up trees and not her airplane. Her disappearance remains unresolved."},
+
+    {word: "Neil Armstrong", definition: "A Purdue aeronautical engineering graduate from the Class of 1955 who became the first person to walk on the Moon on July 20, 1969. His Purdue experience included music and theater: he played baritone in the All-American Marching Band, was in Phi Delta Theta, and co-directed a student musical. Neil Armstrong Hall of Engineering opened in 2019, and the university continues to honor his legacy through the Neil Armstrong Scholarship and the Neil Armstrong Distinguished Visiting Professorship."},
+
+    {word: "World's Largest Drum", definition: "The world's largest drum is located in Elliott Hall of Music. It was built in 1921 by the Ludwig & Ludwig Company of Chicago and is 8 feet in diameter and 42 inches deep. The drum is used for special performances, including the Purdue All-American Marching Band's halftime shows."},
+    
+    {word: "Purdue Pete", definition: "Purdue Pete is the official mascot of Purdue University. He was created in 1940 as a costumed character to represent the university at athletic events and other campus activities. Purdue Pete is known for his large head, muscular build, and friendly demeanor, and he has become an iconic symbol of school spirit at Purdue."},
+
+    {word: "Clapping Circle", definition: "A circular space near the Memorial Union and Stewart Center. Stand in the center and clap to hear a high-pitched, chirping echo caused by sound reflecting off the surrounding steps!"},
+
+    {word: "WALC", definition: "The Wilmeth Active Learning Center is a popular campus study spot. Students gather here for group projects, exam cramming, and all-nighters—usually with laptops and an energy drink. The building features a large, open atrium with plenty of natural light, as well as classrooms and collaborative spaces designed to facilitate active learning."},
+
+    {word: "Den Pop", definition: "A giant fountain soda from the Discount Den near Purdue. You can mix different soda flavors to create your own combination—all for about $2"}
 ];
 
 const screens = document.querySelectorAll(".screen");
